@@ -4,7 +4,7 @@ import threading
 import uuid
 from typing import Union
 
-from curl_cffi import Session
+from curl_cffi.requests import Session
 
 import sdk
 
