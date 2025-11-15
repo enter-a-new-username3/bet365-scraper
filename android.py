@@ -112,20 +112,18 @@ class Bet365AndroidSession(Session):
         return response
 
     def get_x_net_header(self, url: str, cookie_header: str, post_data: bytes) -> str:
-        return (
-            Session() # Don't use requests library. It's extremely slow.
-            .post(
-                self.api_url,
-                headers={"x-net-api-key": self.api_key},
-                json={
-                    "url": url,
-                    "cookie": cookie_header,
-                    "post_hash": base64.b64encode(
-                        hashlib.sha256(post_data).digest()
-                    ).decode(),
-                    "sst": self._sst,
-                    "device_id": self.device_id,
-                },
-            )
-            .text
+        response = Session().post(
+            self.api_url,
+            headers={"x-net-api-key": self.api_key},
+            json={
+                "url": url,
+                "cookie": cookie_header,
+                "post_hash": base64.b64encode(
+                    hashlib.sha256(post_data).digest()
+                ).decode(),
+                "sst": self._sst,
+                "device_id": self.device_id,
+            },
         )
+        assert response.status_code == 200, "An error occured while generating token: " + response.text
+        return response.text
