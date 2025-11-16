@@ -4,7 +4,7 @@ import json, re
 with open("config.json", encoding="utf8") as fp:
     config = json.load(fp)
 
-print("Fetching soccer page using android api and Italy server")
+print("Fetching soccer page using android api")
 
 s = Bet365AndroidSession(
     config["api_url"],
