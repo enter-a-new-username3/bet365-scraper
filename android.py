@@ -4,32 +4,31 @@ import threading
 import uuid
 from typing import Union
 
-from curl_cffi.requests import Session
+from curl_cffi.requests import Session, get
 
 import sdk
 
+TLS_FINGERPRINT = {
+    "ja3": "771,4865-4866-4867-49195-49196-52393-49199-49200-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-51-45-43-21,29-23-24,0",
+    "akamai": "4:16777216|16711681|0|m,p,a,s",
+    "extra_fp": {
+        "tls_signature_algorithms": [
+            "ecdsa_secp256r1_sha256",
+            "rsa_pss_rsae_sha256",
+            "rsa_pkcs1_sha256",
+            "ecdsa_secp384r1_sha384",
+            "rsa_pss_rsae_sha384",
+            "rsa_pkcs1_sha384",
+            "rsa_pss_rsae_sha512",
+            "rsa_pkcs1_sha512",
+            "rsa_pkcs1_sha1",
+        ]
+    },
+}
 
 class Bet365AndroidSession(Session):
     def __init__(self, api_url: str, api_key: str, *args, host="www.bet365.com", **kwargs):
-        kwargs.update(
-            {
-                "ja3": "771,4865-4866-4867-49195-49196-52393-49199-49200-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-51-45-43-21,29-23-24,0",
-                "akamai": "4:16777216|16711681|0|m,p,a,s",
-                "extra_fp": {
-                    "tls_signature_algorithms": [
-                        "ecdsa_secp256r1_sha256",
-                        "rsa_pss_rsae_sha256",
-                        "rsa_pkcs1_sha256",
-                        "ecdsa_secp384r1_sha384",
-                        "rsa_pss_rsae_sha384",
-                        "rsa_pkcs1_sha384",
-                        "rsa_pss_rsae_sha512",
-                        "rsa_pkcs1_sha512",
-                        "rsa_pkcs1_sha1",
-                    ]
-                },
-            }
-        )
+        kwargs.update(TLS_FINGERPRINT)
         super().__init__(*args, **kwargs)
         self.host = host
         self.api_url = api_url
@@ -103,11 +102,14 @@ class Bet365AndroidSession(Session):
 
         host_cookies.update(dot_host_cookies)
 
+        cookie_header = sdk.build_cookies(host_cookies)
         headers["X-Net-Sync-Term-Android"] = self.get_x_net_header(
-            url, sdk.build_cookies(host_cookies), b""
+            url, cookie_header, b""
         )
+        headers["Cookie"] = cookie_header
         kwargs["default_headers"] = False
-        response = self.get(url, headers=headers, *args, **kwargs)
+        kwargs.update(TLS_FINGERPRINT)
+        response = get(url, headers=headers, *args, **kwargs)
 
         return response
 

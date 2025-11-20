@@ -1,7 +1,7 @@
 {
   "api_url": "https://nodomain.site/get_x_net_android",
   "api_key": "",
-  "proxy": null,
+  "proxy": "http://localhost:8083",
   "email": "",
   "password": ""
 }
