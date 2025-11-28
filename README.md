@@ -14,7 +14,7 @@ A powerful and easy-to-use Bet365 API service designed to support both **Android
 This repository contains the API service source code. To explore its full capabilities, you can request a **demo**.
 
 ## Contact
-If you are interested in trying out the API or want a demo, please reach out to me directly.  
+If you are interested in trying out the API or want a demo, please reach out to me via Discord.  
 
 ## Note
 This API is designed to help developers handle bot‑detection challenges and maintain stable access when interacting with Bet365 under legitimate and authorized use cases. It provides a controlled environment for managing request patterns and mitigating false positives from automated protection systems.
