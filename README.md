@@ -30,5 +30,6 @@ python3 main.py
 ```
 ## Contact
 
-[Discord](https://discord.gg/5GqYwmaq)
+[Discord](https://discord.gg/u56FypRKKc)
+
 
