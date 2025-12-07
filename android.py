@@ -63,7 +63,7 @@ class Bet365AndroidSession(Session):
             default_headers=False,
         )
         assert homepage_response.status_code == 200, (
-            f"Blocked by Cloudflare, bad IP or headers should be updated"
+            "Blocked by Cloudflare, bad IP or headers should be updated"
             if homepage_response.status_code == 403
             else f"Unknown error while going to homepage: {homepage_response.status_code}"
         )
@@ -89,7 +89,7 @@ class Bet365AndroidSession(Session):
             default_headers=False,
         )
         assert configuration_response.status_code == 200, (
-            f"Blocked while getting configuration, probably bad IP"
+            "Blocked while getting configuration, probably bad IP"
             if configuration_response.status_code == 500
             else f"Unknown error while fetching configuration: {configuration_response.status_code}"
         )
