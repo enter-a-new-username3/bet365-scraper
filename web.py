@@ -9,6 +9,8 @@ from curl_cffi import Session
 import sdk
 
 
-class Bet365AndroidSession(Session):
+class Bet365WebSession(Session):
     def __init__(self):
-        raise NotImplementedError("Web demo is available but It isn't implemented on Github yet.")
+        raise NotImplementedError(
+            "Web demo is available but It isn't implemented on Github yet."
+        )

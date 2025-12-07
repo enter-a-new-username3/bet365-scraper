@@ -1,5 +1,6 @@
 import json
 import re
+from typing import TypedDict
 
 from android import Bet365AndroidSession
 
@@ -38,3 +39,6 @@ for a, i in enumerate(pattern.finditer(r.text)):
     if a == 10:
         print("\t...")
         break
+
+with open("1.txt", "w", encoding="utf8") as fp:
+    fp.write(r.text)
