@@ -6,6 +6,7 @@
 A powerful and easy-to-use Bet365 API service designed to support both **Android** and **Web** applications.  
 
 ## Features
+- Public demo (Look at the demo above)
 - Seamless integration with Android apps.
 - Ready-to-use endpoints for Web applications.
 - Fast, reliable, and scalable.
@@ -31,5 +32,3 @@ python3 main.py
 ## Contact
 
 [Discord](https://discord.gg/u56FypRKKc)
-
-
