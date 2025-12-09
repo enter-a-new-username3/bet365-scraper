@@ -1,7 +1,7 @@
 ﻿
 # bet365-header-solver-api
 
-![demo](demo.gif)
+![demo](assets/demo.gif)
 
 A powerful and easy-to-use Bet365 API service designed to support both **Android** and **Web** applications.  
 
