@@ -1,7 +1,7 @@
 {
   "api_url": "https://vercel-android-server.vercel.app/get_x_net_android",
   "api_key": "",
-  "proxy": "http://localhost:8083",
+  "proxy": "",
   "email": "",
   "password": ""
 }
