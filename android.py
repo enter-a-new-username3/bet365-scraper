@@ -1,12 +1,26 @@
 import base64
 import hashlib
 import threading
+import urllib.parse
 import uuid
+from dataclasses import dataclass
 from typing import Union
 
 from curl_cffi.requests import Session, get
 
 import sdk
+from message_parser import fix_data, get_parsers, pretty_print_table, read_table
+
+
+def NOT_NULL(_, m):
+    return m is not None
+
+
+@dataclass
+class Sport:
+    name: str
+    PD: str
+
 
 TLS_FINGERPRINT = {
     "ja3": "771,4865-4866-4867-49195-49196-52393-49199-49200-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-51-45-43-21,29-23-24,0",
@@ -27,12 +41,21 @@ TLS_FINGERPRINT = {
 }
 
 
-class Bet365AndroidSession(Session):
+class Bet365AndroidSession:
     def __init__(
-        self, api_url: str, api_key: str, *args, host="www.bet365.com", **kwargs
+        self,
+        api_url: str,
+        api_key: str,
+        *args,
+        host="www.bet365.com",
+        proxy=None,
+        verify=True,
+        **kwargs,
     ):
         kwargs.update(TLS_FINGERPRINT)
-        super().__init__(*args, **kwargs)
+        self.session = Session(*args, **kwargs)
+        self.proxy = proxy
+        self.verify = False
         self.host = host
         self.api_url = api_url
         self.api_key = api_key
@@ -40,8 +63,69 @@ class Bet365AndroidSession(Session):
         self.device_id = str(uuid.uuid4())
         self._sst = ""
 
+    def get_sport_homepage(self, sport: Sport):
+        splash_response = self.protected_get(
+            f"https://{self.host}/splashcontentapi/getsplashpods",
+            params={
+                "lid": "6",
+                "zid": "0",
+                "pd": sport.PD,
+                "cid": "197",
+                "cgid": "2",
+                "ctid": "197",
+                "tzo": "0",
+            },
+            headers={
+                "User-Agent": "Mozilla (Linux; Android 12 Phone; CPU M2003J15SC OS 12 like Gecko) Chrome/141.0.7390.122 Gen6 bet365/8.0.14.00",
+                "X-b365App-ID": "8.0.14.00-row",
+                "Accept-Encoding": "gzip",
+            },
+        )
+        match_tables = []
+
+        for parser in get_parsers(splash_response.text):
+            for _, _ in parser.find_sections(
+                "CL",
+                PV=lambda k, v: v.startswith("podcontentcontentapi"),
+                include_part_index=True,
+            ):
+                for idx, _ in parser.find_sections("MG", include_part_index=True):
+                    table = read_table(parser, idx)
+                    pretty_print_table(table)
+                    match_tables.append(fix_data(table))
+
+    def extract_available_sports(self) -> list[Sport]:
+        r = self.protected_get(
+            f"https://{self.host}/leftnavcontentapi/allsportsmenu",
+            params={
+                "lid": "32",
+                "zid": "0",
+                "pd": "#AL#B1#R^1#",
+                "cid": "190",
+                "cgid": "1",
+                "ctid": "190",
+                "csid": "66",
+            },
+            headers={
+                "User-Agent": "Mozilla (Linux; Android 12 Phone; CPU M2003J15SC OS 12 like Gecko) Chrome/141.0.7390.122 Gen6 bet365/8.0.14.00",
+                "X-b365App-ID": "8.0.14.00-row",
+                "Accept-Encoding": "gzip",
+            },
+            verify=False,
+        )
+        sports = []
+        for parser in get_parsers(r.text):
+            for _, cl in parser.find_sections(
+                "CL", PD=NOT_NULL, NA=NOT_NULL, include_part_index=True
+            ):
+                pd = cl.get_property("PD", "")
+                if pd.endswith("K^5#"):
+                    pd = pd[: -len("K^5#")]
+                sports.append(Sport(cl.get_property("NA"), pd))
+        return sports
+
     def go_homepage(self):
-        homepage_response = self.get(
+        homepage_response = self.session.get(
             f"https://{self.host}/",
             headers={
                 "x-b365app-id": "8.0.14.00-row",
@@ -67,7 +151,7 @@ class Bet365AndroidSession(Session):
             if homepage_response.status_code == 403
             else f"Unknown error while going to homepage: {homepage_response.status_code}"
         )
-        configuration_response = self.get(
+        configuration_response = self.session.get(
             f"https://{self.host}"
             + homepage_response.text.split('"SITE_CONFIG_LOCATION":"')[1].split('"')[0],
             headers={
@@ -105,7 +189,7 @@ class Bet365AndroidSession(Session):
 
         host_cookies = {}
         dot_host_cookies = {}
-        for cookie in self.cookies.jar:
+        for cookie in self.session.cookies.jar:
             if cookie.domain == self.host:
                 host_cookies[cookie.name] = cookie.value
             else:
@@ -114,12 +198,24 @@ class Bet365AndroidSession(Session):
         host_cookies.update(dot_host_cookies)
 
         cookie_header = sdk.build_cookies(host_cookies)
-        headers["X-Net-Sync-Term-Android"] = self.get_x_net_header(
-            url, cookie_header, b""
-        )
+
         headers["Cookie"] = cookie_header
         kwargs["default_headers"] = False
         kwargs.update(TLS_FINGERPRINT)
+
+        params = kwargs.get("params", {})
+        if len(params):
+            parsed_url = urllib.parse.urlparse(url)
+            path = (
+                parsed_url.path + "?" + urllib.parse.urlencode(params)
+                if len(params)
+                else parsed_url.path
+            )
+            url = f"{parsed_url.scheme}://{parsed_url.netloc}{path}"
+        headers["X-Net-Sync-Term-Android"] = self.get_x_net_header(
+            url, cookie_header, b""
+        )
+        kwargs.update({"proxy": self.proxy, "verify": self.verify})
         response = get(url, headers=headers, *args, **kwargs)
 
         return response
