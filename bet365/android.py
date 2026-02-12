@@ -77,7 +77,7 @@ class Bet365AndroidSession:
         self._cookie_lock = threading.Lock()
         self.device_id = f"00000000-0000-0000-{os.urandom(2).hex().upper()}-{os.urandom(6).hex().upper()}"
         self._sst = ""
-
+        self.zap_thread = None
     def get_sport_homepage(self, sport: Sport):
         splash_response = self.protected_get(
             f"https://{self.host}/splashcontentapi/getsplashpods",

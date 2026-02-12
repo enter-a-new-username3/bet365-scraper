@@ -7,7 +7,7 @@ with open("config.json", encoding="utf8") as fp:
 
 print("Fetching soccer page using android api")
 
-s = Bet365AndroidSession(
+session = Bet365AndroidSession(
     config["api_url"],
     config["api_key"],
     proxy=config["proxy"] or None,
@@ -15,9 +15,10 @@ s = Bet365AndroidSession(
     host="www.bet365.com",
 )
 print("Going to homepage started taking longer than it should because of curl_cffi.")
-s.go_homepage()
+session.go_homepage()
 
-sports = s.extract_available_sports()
+sports = session.extract_available_sports()
 tennis = next(filter(lambda m: m.name == "Soccer", sports))
-s.get_sport_homepage(tennis)
-s.zap_thread.join()
+session.get_sport_homepage(tennis)
+if session.zap_thread is not None:
+    session.zap_thread.join()
